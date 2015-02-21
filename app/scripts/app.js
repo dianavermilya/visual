@@ -27,6 +27,10 @@ angular
         templateUrl: 'views/about.html',
         controller: 'AboutCtrl'
       })
+      .when('/journal', {
+        templateUrl: 'views/journal.html',
+        controller: 'JournalCtrl'
+      })
       .otherwise({
         redirectTo: '/'
       });
