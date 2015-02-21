@@ -35,12 +35,24 @@
             <a class="navbar-brand" href="#/">visual</a>
           </div>
 
-          <div class="collapse navbar-collapse" id="js-navbar-collapse">
+          <div class="collapse navbar-collapse" id="js-navbar-collapse" ng-controller="HeaderController">
 
             <ul class="nav navbar-nav">
-              <li class="active"><a href="#/">Home</a></li>
-              <li><a ng-href="#/about">About</a></li>
-              <li><a ng-href="#/">Contact</a></li>
+              
+              <li ng-class="{ active: isActive('/')}"><a href="#/">Home</a></li>
+              <li ng-class="{ active: isActive('/about')}"><a href="#/about">About</a></li>
+              <li ng-class="{ active: isActive('/visualizations')}"><a href="#/visualizations">Visualizations</a></li>
+              <li ng-class="{ active: isActive('/journal')}"><a href="#/journal">Journal</a></li>
+              
+
+              <!--
+              <li><a href="#/home">Home</a></li>
+              <li><a href="#/about">About</a></li>
+              <li><a href="#/visualizations">Visualizations</a></li>
+              <li><a href="#/journal">Journal</a></li>
+              -->
+
+
             </ul>
           </div>
         </div>
@@ -86,8 +98,10 @@
         <!-- build:js({.tmp,app}) scripts/scripts.js -->
         <script src="scripts/app.js"></script>
         <script src="scripts/controllers/main.js"></script>
+        <script src="scripts/controllers/header.js"></script>
         <script src="scripts/controllers/about.js"></script>
         <script src="scripts/controllers/journal.js"></script>
+        <script src="scripts/controllers/visualizations.js"></script>
         <!-- endbuild -->
 </body>
 </html>
