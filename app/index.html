@@ -21,8 +21,8 @@
 
     <!-- Add your site or application content here -->
     <div class="header">
-      <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-        <div class="container">
+      <div class="navbar navbar-inverse navbar-fixed-top topnav" role="navigation">
+        <div class="container topnav">
           <div class="navbar-header">
 
             <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#js-navbar-collapse">
@@ -32,14 +32,13 @@
               <span class="icon-bar"></span>
             </button>
 
-            <a class="navbar-brand" href="#/">visual</a>
+            <a class="navbar-brand" href="#/">Visual Code</a>
           </div>
 
           <div class="collapse navbar-collapse" id="js-navbar-collapse" ng-controller="HeaderController">
 
-            <ul class="nav navbar-nav">
-              <li><a href="#/home">Home</a></li>
-              <li><a href="#/about">About</a></li>
+            <ul class="nav navbar-nav navbar-right">
+              <li><a href="#/main">About</a></li>
               <li><a href="#/visualizations">Visualizations</a></li>
               <li><a href="#/journal">Journal</a></li>
             </ul>
@@ -54,7 +53,7 @@
 
     <div class="footer">
       <div class="container">
-        <p>Code licensed under MIT License.</p>
+        <p><span class="glyphicon glyphicon-heart"></span> from the Yeoman team</p>
       </div>
     </div>
 
@@ -65,7 +64,6 @@
        (A[l].q=A[l].q||[]).push(arguments)},A[l].l=+new Date,a=n.createElement(g),
        r=n.getElementsByTagName(g)[0],a.src=u,r.parentNode.insertBefore(a,r)
        }(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
        ga('create', 'UA-XXXXX-X');
        ga('send', 'pageview');
     </script>

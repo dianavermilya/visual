@@ -10,10 +10,10 @@
 
 
 angular.module('visualApp')
-  .controller('HeaderController', function ($scope, $location) {
-     $scope.isActive = function (viewLocation) { 
-      return viewLocation === $location.path();
-    };
-  });
-
-
+  .controller('HeaderController', function ($scope, $location, $anchorScroll) {
+  $scope.scrollTo = function(id) {
+    $location.hash(id);
+    console.log($location.hash());
+    $anchorScroll();
+  };
+});
