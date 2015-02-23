@@ -1,4 +1,8 @@
-<!DOCTYPE html> <meta charset="utf-8"> <style>circle{
+<!DOCTYPE html> <meta charset="utf-8"> <style>body{
+	width:960px;
+	margin:10px auto;
+}
+circle{
   fill:white;
   stroke:steelblue;  
   stroke-width:2px;
@@ -37,7 +41,7 @@ line{
 	text-anchor:middle;
 	fill:red;
 	font-weight:bold;
-}</style> <script src="http://d3js.org/d3.v3.min.js"></script> <script>function tree(){
+}</style> <body> <script>function tree(){
 	var svgW=958, svgH =460, vRad=12, tree={cx:300, cy:30, w:40, h:70};
 	tree.vis={v:0, l:'?', p:{x:tree.cx, y:tree.cy},c:[]};	
 	tree.size=1;
