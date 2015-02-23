@@ -31,6 +31,10 @@ angular
         templateUrl: 'views/visualizations.html',
         controller: 'VisualizationsCtrl'
       })
+      .when('/rebalance', {
+        templateUrl: 'views/rebalance.html',
+        controller: 'RebalanceCtrl'
+      })
       .otherwise({
         redirectTo: '/'
       });
