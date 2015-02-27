@@ -53,6 +53,7 @@ body {
 .header,
 .marketing,
 .footer {
+  height: 50px;
   padding-left: 15px;
   padding-right: 15px;
 }
@@ -284,10 +285,7 @@ h6 {
     }
 }
 
-footer {
-    padding: 50px 0;
-    background-color: #f8f8f8;
-}
+
 
 p.copyright {
     margin: 15px 0 0;
@@ -365,7 +363,11 @@ body .serif {
 }
 
 footer {
-  padding: 50px 0 65px;
+  background-color: #f8f8f8;
+  bottom: 0;
+  position: fixed;
+  width: 100%;
+  padding: 50px 0;
   .list-inline {
     margin: 0;
     padding: 0;
@@ -401,8 +403,11 @@ body {
 
 
 // D3 graceful tree css
-/*
 
+div.rebalance-container{
+  width:960px;
+  margin:10px auto;
+}
 circle{
   fill:white;
   stroke:steelblue;  
@@ -443,7 +448,3 @@ line{
   fill:red;
   font-weight:bold;
 }
-*/
-
-
-
