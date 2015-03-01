@@ -103,6 +103,7 @@ body {
   }
 }
 
+
 /* Responsive: Portrait tablets and up */
 @media screen and (min-width: 768px) {
 
@@ -403,11 +404,23 @@ body {
 
 
 // D3 graceful tree css
+/*
+@media screen and (min-width: 1200px) {
+  .rebalance-container {
+    width: 1140px;
+  }
+}
+*/
 
+
+/*
 div.rebalance-container{
   width:960px;
   margin:10px auto;
 }
+*/
+
+
 circle{
   fill:white;
   stroke:steelblue;  
@@ -447,4 +460,8 @@ line{
   text-anchor:middle;
   fill:red;
   font-weight:bold;
+}
+
+.binary-nav {
+  margin-bottom: 15px;
 }

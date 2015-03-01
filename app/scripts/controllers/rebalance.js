@@ -8,59 +8,92 @@
  * Controller of the visualApp
  */
 angular.module('visualApp')
-    .controller('RebalanceCtrl', function ($scope, Structures) {
-		function redBlackTree(){
-			var svgWidth = 958;
+    .controller('RebalanceCtrl', function ($scope) {
+
+
+		function binaryTree(){
+			var svgWidth = d3.select(".rebalance-svg-container").node().getBoundingClientRect().width;
 			var svgHeight = 460;
 			var vRadius=12;
-			tree={cx:300, cy:30, w:40, h:70};
+			tree={cx:Math.floor(svgWidth/2), cy:30, w:60, h:60};
 
-			tree.node={id:0, labeltext:'0', position:{x:tree.cx, y:tree.cy},children:[]};	
+			tree.node={id:0, value:0, labeltext:'0', position:{x:tree.cx, y:tree.cy},children:{}};	
 			tree.size=1;
 			
 			tree.getVertices = function(){
 				var vertices =[];
 				function getVertices(node,parent){
-					var copyOfVertex = {id:node.id, labeltext:node.labeltext, position:node.position, parent:parent} 	
-					vertices.push(copyOfVertex);	
-					node.children.forEach(function(child){
-						return getVertices(child,{id:node.id, position:node.position}); 
-					});
+					if (node) {
+						var copyOfVertex = {id:node.id, labeltext:node.labeltext, position:node.position, parent:parent} 	
+						vertices.push(copyOfVertex);
+						var nodeCopy = {id:node.id, position:node.position};
+						getVertices(node.children.leftChild, nodeCopy);
+						getVertices(node.children.rightChild, nodeCopy);
+					}
 				}
 				getVertices(tree.node,{});
-				console.log("vertices", vertices.sort(function(a,b){ return a.id - b.id;}));
 				return vertices.sort(function(a,b){ return a.id - b.id;});
 			}
 			
 			tree.getEdges =  function(){
 				var edges =[];
 				function getEdges(node){
-					node.children.forEach(function(child){
-						edges.push({parentId:node.id, parentLabel:node.labeltext, parentPosition:node.position, childId:child.id, childLabel:child.labeltext, childPosition:child.position});
-					});
-					node.children.forEach(getEdges);
+					function getEdgesOfChild(child){
+						if (child) {
+							edges.push({parentId:node.id, parentLabel:node.labeltext, parentPosition:node.position, childId:child.id, childLabel:child.labeltext, childPosition:child.position});
+							getEdges(child);
+						}
+					}
+					getEdgesOfChild(node.children.leftChild);
+					getEdgesOfChild(node.children.rightChild);
 				}
 				getEdges(tree.node);
 				return edges.sort(function(a,b){ return a.childId - b.childId;});	
 			}
 			
-			tree.addLeaf = function(id){
-				function addLeaf(node){
-					if(node.id==id){
-						var newSize = tree.size++
-						var newChild = {id:newSize, labeltext:newSize.toString(), position:{},children:[]}
-						node.children.push(newChild); 
-						return; 
-					}
-					node.children.forEach(addLeaf);
-				}
-				addLeaf(tree.node);
+			tree.addLeaf = function(val){
+				var newSize = tree.size++
+				var newNode = {id:newSize, value:val, labeltext:val.toString(), position:{},children:{}}
+				tree.addNode(newNode);
 				reposition(tree.node);
 				redraw();
+			}
+
+			tree.addNode = function(newNode) {
+				function chooseBranch(node){
+					if (newNode.value != undefined) {
+						if (newNode.value <= node.value) {
+							addLeftChild(node, newNode);
+						} else {
+							addRightChild(node, newNode);
+						}
+					}
+				}
+
+				function addLeftChild(node, child) {
+					if (!node.children.leftChild) {
+						node.children.leftChild = child;
+					} else {
+						chooseBranch(node.children.leftChild);
+					}
+				}
+
+				function addRightChild(node, child) {
+					if (!node.children.rightChild) {
+						node.children.rightChild = child;
+					} else {
+						chooseBranch(node.children.rightChild);
+					}
+				}
+				chooseBranch(tree.node);
+
 			}
 			
 			var redraw = function(){
 				var edges = d3.select("#g_lines").selectAll('line').data(tree.getEdges());
+				//console.log("without data", d3.select("#g_lines").selectAll('line'));
+				//console.log("with data", edges);
+
 				
 				edges.transition().duration(500)
 					.attr('x1',function(d){ return d.parentPosition.x;}).attr('y1',function(d){ return d.parentPosition.y;})
@@ -91,28 +124,41 @@ angular.module('visualApp')
 					.attr('x',function(d){ return d.position.x;}).attr('y',function(d){ return d.position.y+5;});			
 			}
 			
-			var getLeafCount = function(_){
-				if(_.children.length ==0) return 1;
-				else return _.children.map(getLeafCount).reduce(function(a,b){ return a+b;});
-			}
+			var getLeafCount = function(node) {
+				var leafCount = 0
+
+				if (!node.children.leftChild && !node.children.rightChild) {
+					leafCount = 1;
+				} else {
+					if (node.children.leftChild) {
+						leafCount +=getLeafCount(node.children.leftChild)
+					}
+					if (node.children.rightChild) {
+						leafCount +=getLeafCount(node.children.rightChild)
+					}
+				}
+				return leafCount;
+			};
 			
 			var reposition = function(node){
 				var leafCount = getLeafCount(node);
 				var left=node.position.x - tree.w*(leafCount-1)/2;
-				node.children.forEach(function(child){
-					var w =tree.w*getLeafCount(child); 
-					left+=w; 
-					child.position = {x:left-(w+tree.w)/2, y:node.position.y+tree.h};
-					reposition(child);
-				});		
+
+				function repositionChild(child) {
+					if (child) {
+						var w =tree.w*getLeafCount(child); 
+						left+=w; 
+						child.position = {x:left-(w+tree.w)/2, y:node.position.y+tree.h};
+						reposition(child);
+					}
+				}
+
+				repositionChild(node.children.leftChild);
+				repositionChild(node.children.rightChild);
 			}	
 			
-			var initialize = function(){
-				d3.select(".rebalance-container").append("div").attr('id','navdiv');
-				
-				d3.select("#navdiv").append("nav").attr('id','labelnav').style('display','inline-block').style('visibility','hidden');
-						
-				d3.select(".rebalance-container").append("svg").attr("width", svgWidth).attr("height", svgHeight).attr('id','treesvg');
+			var initialize = function(){										
+				d3.select(".rebalance-svg-container").append("svg").attr("width", svgWidth).attr("height", svgHeight).attr('id','treesvg');
 
 				d3.select("#treesvg").append('g').attr('id','g_lines').selectAll('line').data(tree.getEdges()).enter().append('line')
 					.attr('x1',function(d){ return d.parentPosition.x;}).attr('y1',function(d){ return d.parentPosition.y;})
@@ -125,13 +171,83 @@ angular.module('visualApp')
 				d3.select("#treesvg").append('g').attr('id','g_labels').selectAll('text').data(tree.getVertices()).enter().append('text')
 					.attr('x',function(d){ return d.position.x;}).attr('y',function(d){ return d.position.y+5;}).text(function(d){return d.labeltext;})
 					.on('click',function(d){return tree.addLeaf(d.id);});	
-					
-				tree.addLeaf(0);
-				tree.addLeaf(0);
+				tree.addLeaf(7);
+				tree.addLeaf(5);
+				tree.addLeaf(3);
+				tree.addLeaf(6);
+				tree.addLeaf(12);
+				tree.addLeaf(10);
+				tree.addLeaf(4);
+				tree.addLeaf(8);
+				tree.addLeaf(11);
+
 			}
 			initialize();
 
 			return tree;
 		}
-		var tree= redBlackTree();
+
+
+		$scope.addNode = function() {
+			if (tree && $scope.addNodeValue) {
+				var addNodeValue = parseInt($scope.addNodeValue);
+				tree.addLeaf(addNodeValue);
+				$scope.addNodeValue = "";					
+			}
+    	}
+
+    	function findNode(node, val){
+    		if (node.value == val) {
+    			return node;
+    		} else if (val <= node.value && node.children.leftChild) {
+    			return findNode(node.children.leftChild, val);
+    		} else if (val > node.value && node.children.rightChild) {
+    			return findNode(node.children.rightChild, val);
+    		} else {
+    			return false;
+    		}
+    	}
+
+    	$scope.findNode = function() {
+    		if (tree && $scope.findNodeValue) {
+    			var findNodeValue = parseInt($scope.findNodeValue);
+    			var node = findNode(tree.node, findNodeValue);
+    			$scope.findNodeValue = "";
+    			console.log(node);
+    		}
+    	}
+
+    	function removeNode(node, val, parent, prop){
+    		console.log("node", node, val);
+    		if (node.value == val) {
+    			parent.children[prop] = undefined;
+    			if (node.children.leftChild) {
+    				tree.addNode(node.children.leftChild);
+    			}
+    			if (node.children.rightChild) {
+    				tree.addNode(node.children.rightChild);
+    			}
+    			return node;
+    		} else if (val <= node.value && node.children.leftChild) {
+    			return removeNode(node.children.leftChild, val, node);
+    		} else if (val > node.value && node.children.rightChild) {
+    			return removeNode(node.children.rightChild, val, node);
+    		} else {
+    			return false;
+    		}
+    	}
+
+    	$scope.removeNode = function() {
+    		if (tree && $scope.removeNodeValue) {
+    			var removeNodeValue = parseInt($scope.removeNodeValue);
+    			removeNode(tree.node, removeNodeValue);
+    		}
+    	}
+
+
+
+		var tree= binaryTree();
+
+
+
     });

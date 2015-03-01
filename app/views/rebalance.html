@@ -1,5 +1,41 @@
+<div class="row binary-nav">
+  <div class="col-lg-3">
+    <div class="input-group">
+      <span class="input-group-btn">
+        <button class="btn btn-default" ng-click="addNode()" type="button">Add Node</button>
+      </span>
+      <input type="text" class="form-control" ng-model="addNodeValue" placeholder="value">
+    </div><!-- /input-group -->
+  </div><!-- /.col-lg-5 -->
+  <div class="col-lg-3">
+    <div class="input-group">
+      <span class="input-group-btn">
+        <button class="btn btn-default" ng-click="removeNode()" type="button">Remove Node</button>
+      </span>
+      <input type="text" class="form-control" ng-model="removeNodeValue" placeholder="value">
+    </div><!-- /input-group -->
+  </div><!-- /.col-lg-5 -->
 
-<div class="rebalance-container"></div>
+  <div class="col-lg-3">
+    <div class="input-group">
+      <span class="input-group-btn">
+        <button class="btn btn-default" ng-click="findNode()" type="button">Find Node</button>
+      </span>
+      <input type="text" class="form-control" ng-model="findNodeValue" placeholder="value">
+    </div><!-- /input-group -->
+  </div><!-- /.col-lg-5 -->
+
+  <div class="col-lg-3">
+    <div class="input-group">
+      <span class="input-group-btn">
+        <button class="btn btn-default" type="button">Depth First Search</button>
+      </span>
+      <input type="text" class="form-control" placeholder="value">
+    </div><!-- /input-group -->
+  </div><!-- /.col-lg-5 -->
+</div><!-- /.row -->
+
+<div class="rebalance-svg-container"></div>
 <div>
 <p> Tree visualization reworked from <a href="http://bl.ocks.org/NPashaP/7683252">http://bl.ocks.org/NPashaP/7683252<p>
 </div>
