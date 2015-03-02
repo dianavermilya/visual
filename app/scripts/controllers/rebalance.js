@@ -69,7 +69,6 @@ angular.module('visualApp')
 						}
 					}
 				}
-
 				function addLeftChild(node, child) {
 					if (!node.children.leftChild) {
 						node.children.leftChild = child;
@@ -77,7 +76,6 @@ angular.module('visualApp')
 						chooseBranch(node.children.leftChild);
 					}
 				}
-
 				function addRightChild(node, child) {
 					if (!node.children.rightChild) {
 						node.children.rightChild = child;
@@ -88,40 +86,86 @@ angular.module('visualApp')
 				chooseBranch(tree.node);
 
 			}
+
+			tree.removeNode = function(val){
+
+				function removeNodeFromChild (node, val, parent, prop) {
+					if (node.value == val) {
+		    			delete parent.children[prop];
+		    			if (node.children.leftChild) {
+		    				tree.addNode(node.children.leftChild);
+		    			}
+		    			if (node.children.rightChild) {
+		    				tree.addNode(node.children.rightChild);
+		    			}
+		    			return node;
+		    		} else if (val <= node.value && node.children.leftChild) {
+		    			return removeNodeFromChild(node.children.leftChild, val, node, "leftChild");
+		    		} else if (val > node.value && node.children.rightChild) {
+		    			return removeNodeFromChild(node.children.rightChild, val, node, "rightChild");
+		    		} else {
+		    			return false;
+		    		}			
+				}
+				removeNodeFromChild(tree.node, val);
+	    		reposition(tree.node);
+				redraw();
+	    	}
 			
 			var redraw = function(){
-				var edges = d3.select("#g_lines").selectAll('line').data(tree.getEdges());
-				//console.log("without data", d3.select("#g_lines").selectAll('line'));
-				//console.log("with data", edges);
-
+				var edges = d3.select("#g_lines").selectAll('line').data(tree.getEdges(), function(d){return d.childId});
 				
 				edges.transition().duration(500)
-					.attr('x1',function(d){ return d.parentPosition.x;}).attr('y1',function(d){ return d.parentPosition.y;})
-					.attr('x2',function(d){ return d.childPosition.x;}).attr('y2',function(d){ return d.childPosition.y;})
+					.attr('x1',function(d){ return d.parentPosition.x;})
+					.attr('y1',function(d){ return d.parentPosition.y;})
+					.attr('x2',function(d){ return d.childPosition.x;})
+					.attr('y2',function(d){ return d.childPosition.y;})
 			
 				edges.enter().append('line')
-					.attr('x1',function(d){ return d.parentPosition.x;}).attr('y1',function(d){ return d.parentPosition.y;})
-					.attr('x2',function(d){ return d.parentPosition.x;}).attr('y2',function(d){ return d.parentPosition.y;})
+					.attr('x1',function(d){ return d.parentPosition.x;})
+					.attr('y1',function(d){ return d.parentPosition.y;})
+					.attr('x2',function(d){ return d.parentPosition.x;})
+					.attr('y2',function(d){ return d.parentPosition.y;})
 					.transition().duration(500)
-					.attr('x2',function(d){ return d.childPosition.x;}).attr('y2',function(d){ return d.childPosition.y;});
-					
-				var circles = d3.select("#g_circles").selectAll('circle').data(tree.getVertices());
+						.attr('x2',function(d){ return d.childPosition.x;})
+						.attr('y2',function(d){ return d.childPosition.y;});
+				
+				edges.exit().remove();
 
-				circles.transition().duration(500).attr('cx',function(d){ return d.position.x;}).attr('cy',function(d){ return d.position.y;});
+				var circles = d3.select("#g_circles").selectAll('circle').data(tree.getVertices(), function(d){return d.id});
+
+				circles.transition().duration(500)
+				.attr('cx',function(d){ return d.position.x;})
+				.attr('cy',function(d){ return d.position.y;});
 				
-				circles.enter().append('circle').attr('cx',function(d){ return d.parent.position.x;}).attr('cy',function(d){ return d.parent.position.y;}).attr('r',vRadius)
-					.on('click',function(d){return tree.addLeaf(d.id);})
-					.transition().duration(500).attr('cx',function(d){ return d.position.x;}).attr('cy',function(d){ return d.position.y;});
-					
-				var labels = d3.select("#g_labels").selectAll('text').data(tree.getVertices());
-				
-				labels.text(function(d){return d.labeltext;}).transition().duration(500)
-					.attr('x',function(d){ return d.position.x;}).attr('y',function(d){ return d.position.y+5;});
-					
-				labels.enter().append('text').attr('x',function(d){ return d.parent.position.x;}).attr('y',function(d){ return d.parent.position.y+5;})
-					.text(function(d){return d.labeltext;}).on('click',function(d){return tree.addLeaf(d.id);})
+				circles.enter().append('circle')
+					.attr('cx',function(d){ return d.parent.position.x;})
+					.attr('cy',function(d){ return d.parent.position.y;})
+					.attr('r',vRadius)
+					//.on('click',function(d){return tree.addLeaf(d.id);})
 					.transition().duration(500)
-					.attr('x',function(d){ return d.position.x;}).attr('y',function(d){ return d.position.y+5;});			
+						.attr('cx',function(d){ return d.position.x;})
+						.attr('cy',function(d){ return d.position.y;});
+				
+				circles.exit().remove();
+
+				var labels = d3.select("#g_labels").selectAll('text').data(tree.getVertices(), function(d){ return d.id});
+				
+				labels.text(function(d){return d.labeltext;})
+					.transition().duration(500)
+						.attr('x',function(d){ return d.position.x;})
+						.attr('y',function(d){ return d.position.y+5;});
+					
+				labels.enter().append('text')
+					.attr('x',function(d){ return d.parent.position.x;})
+					.attr('y',function(d){ return d.parent.position.y+5;})
+					.text(function(d){return d.labeltext;})
+					//.on('click',function(d){return tree.addLeaf(d.id);})
+					.transition().duration(500)
+						.attr('x',function(d){ return d.position.x;})
+						.attr('y',function(d){ return d.position.y+5;});
+			
+				labels.exit().remove();			
 			}
 			
 			var getLeafCount = function(node) {
@@ -158,19 +202,33 @@ angular.module('visualApp')
 			}	
 			
 			var initialize = function(){										
-				d3.select(".rebalance-svg-container").append("svg").attr("width", svgWidth).attr("height", svgHeight).attr('id','treesvg');
+				d3.select(".rebalance-svg-container").append("svg")
+					.attr("width", svgWidth)
+					.attr("height", svgHeight)
+					.attr('id','treesvg');
 
-				d3.select("#treesvg").append('g').attr('id','g_lines').selectAll('line').data(tree.getEdges()).enter().append('line')
-					.attr('x1',function(d){ return d.parentPosition.x;}).attr('y1',function(d){ return d.parentPosition.y;})
-					.attr('x2',function(d){ return d.childPosition.x;}).attr('y2',function(d){ return d.childPosition.y;});
+				var edges = d3.select("#treesvg").append('g').attr('id','g_lines').selectAll('line').data(tree.getEdges(), function(d){return d.childId});
 
-				d3.select("#treesvg").append('g').attr('id','g_circles').selectAll('circle').data(tree.getVertices()).enter()
-					.append('circle').attr('cx',function(d){ return d.position.x;}).attr('cy',function(d){ return d.position.y;}).attr('r',vRadius)
-					.on('click',function(d){return tree.addLeaf(d.id);});
+				edges.enter().append('line')
+					.attr('x1',function(d){ return d.parentPosition.x;})
+					.attr('y1',function(d){ return d.parentPosition.y;})
+					.attr('x2',function(d){ return d.childPosition.x;})
+					.attr('y2',function(d){ return d.childPosition.y;});
+
+				var circles = d3.select("#treesvg").append('g').attr('id','g_circles').selectAll('circle').data(tree.getVertices(), function(d){return d.id});
+				circles.enter().append('circle')
+					.attr('cx',function(d){ return d.position.x;})
+					.attr('cy',function(d){ return d.position.y;})
+					.attr('r',vRadius)
+					//.on('click',function(d){return tree.addLeaf(d.id);});
 					
-				d3.select("#treesvg").append('g').attr('id','g_labels').selectAll('text').data(tree.getVertices()).enter().append('text')
-					.attr('x',function(d){ return d.position.x;}).attr('y',function(d){ return d.position.y+5;}).text(function(d){return d.labeltext;})
-					.on('click',function(d){return tree.addLeaf(d.id);});	
+				var labels = d3.select("#treesvg").append('g').attr('id','g_labels').selectAll('text').data(tree.getVertices(), function(d){return d.id})
+				labels.enter().append('text')
+					.attr('x',function(d){ return d.position.x;})
+					.attr('y',function(d){ return d.position.y+5;})
+					.text(function(d){return d.labeltext;})
+					//.on('click',function(d){return tree.addLeaf(d.id);});	
+				
 				tree.addLeaf(7);
 				tree.addLeaf(5);
 				tree.addLeaf(3);
@@ -213,39 +271,18 @@ angular.module('visualApp')
     			var findNodeValue = parseInt($scope.findNodeValue);
     			var node = findNode(tree.node, findNodeValue);
     			$scope.findNodeValue = "";
-    			console.log(node);
     		}
     	}
 
-    	function removeNode(node, val, parent, prop){
-    		console.log("node", node, val);
-    		if (node.value == val) {
-    			parent.children[prop] = undefined;
-    			if (node.children.leftChild) {
-    				tree.addNode(node.children.leftChild);
-    			}
-    			if (node.children.rightChild) {
-    				tree.addNode(node.children.rightChild);
-    			}
-    			return node;
-    		} else if (val <= node.value && node.children.leftChild) {
-    			return removeNode(node.children.leftChild, val, node);
-    		} else if (val > node.value && node.children.rightChild) {
-    			return removeNode(node.children.rightChild, val, node);
-    		} else {
-    			return false;
-    		}
-    	}
 
     	$scope.removeNode = function() {
     		if (tree && $scope.removeNodeValue) {
     			var removeNodeValue = parseInt($scope.removeNodeValue);
-    			removeNode(tree.node, removeNodeValue);
+    			tree.removeNode(removeNodeValue);
     		}
+    		$scope.removeNodeValue = "";
+
     	}
-
-
-
 		var tree= binaryTree();
 
 
