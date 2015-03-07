@@ -17,7 +17,7 @@ angular.module('visualApp')
 			var vRadius=12;
 			tree={cx:Math.floor(svgWidth/2), cy:30, w:60, h:60};
 
-			tree.node={id:0, value:0, labeltext:'0', position:{x:tree.cx, y:tree.cy},children:{}};	
+			tree.root={id:0, value:0, labeltext:'0', position:{x:tree.cx, y:tree.cy},children:{}};	
 			tree.size=1;
 			
 			tree.getVertices = function(){
@@ -31,11 +31,13 @@ angular.module('visualApp')
 						getVertices(node.children.rightChild, nodeCopy);
 					}
 				}
-				getVertices(tree.node,{});
-				return vertices.sort(function(a,b){ return a.id - b.id;});
+				if (tree.root) getVertices(tree.root,{position:{x:tree.cx, y:tree.cy}});
+				var sortedVertices = vertices.sort(function(a,b){ return a.id - b.id;});
+				console.log(sortedVertices);
+				return sortedVertices;
 			}
 			
-			tree.getEdges =  function(){
+			tree.getEdges = function(){
 				var edges =[];
 				function getEdges(node){
 					function getEdgesOfChild(child){
@@ -47,15 +49,32 @@ angular.module('visualApp')
 					getEdgesOfChild(node.children.leftChild);
 					getEdgesOfChild(node.children.rightChild);
 				}
-				getEdges(tree.node);
+				if (tree.root) getEdges(tree.root);
 				return edges.sort(function(a,b){ return a.childId - b.childId;});	
+			}
+
+			tree.findNode = function(val) {
+				function findNode(node, val){
+		    		if (node.value == val) {
+		    			return node;
+		    		} else if (val <= node.value && node.children.leftChild) {
+		    			return findNode(node.children.leftChild, val);
+		    		} else if (val > node.value && node.children.rightChild) {
+		    			return findNode(node.children.rightChild, val);
+		    		} else {
+		    			return false;
+		    		}
+		    	}
+		    	return findNode(tree.root, val);
+
 			}
 			
 			tree.addLeaf = function(val){
 				var newSize = tree.size++
 				var newNode = {id:newSize, value:val, labeltext:val.toString(), position:{},children:{}}
+
 				tree.addNode(newNode);
-				reposition(tree.node);
+				reposition();
 				redraw();
 			}
 
@@ -83,15 +102,27 @@ angular.module('visualApp')
 						chooseBranch(node.children.rightChild);
 					}
 				}
-				chooseBranch(tree.node);
-
+				if (!tree.root) {
+					newNode.position = {x:tree.cx, y:tree.cy};
+					tree.root = newNode;
+				} else {
+					chooseBranch(tree.root);
+				}
 			}
 
 			tree.removeNode = function(val){
+				if (!tree.root) {
+					return;
+				}
 
 				function removeNodeFromChild (node, val, parent, prop) {
+
 					if (node.value == val) {
-		    			delete parent.children[prop];
+						if (parent) {
+			    			delete parent.children[prop];
+						} else {
+							tree.root = null;
+						}
 		    			if (node.children.leftChild) {
 		    				tree.addNode(node.children.leftChild);
 		    			}
@@ -107,13 +138,15 @@ angular.module('visualApp')
 		    			return false;
 		    		}			
 				}
-				removeNodeFromChild(tree.node, val);
-	    		reposition(tree.node);
+
+				removeNodeFromChild(tree.root, val);
+	    		reposition();
 				redraw();
 	    	}
 			
 			var redraw = function(){
 				var edges = d3.select("#g_lines").selectAll('line').data(tree.getEdges(), function(d){return d.childId});
+				console.log(edges);
 				
 				edges.transition().duration(500)
 					.attr('x1',function(d){ return d.parentPosition.x;})
@@ -142,7 +175,6 @@ angular.module('visualApp')
 					.attr('cx',function(d){ return d.parent.position.x;})
 					.attr('cy',function(d){ return d.parent.position.y;})
 					.attr('r',vRadius)
-					//.on('click',function(d){return tree.addLeaf(d.id);})
 					.transition().duration(500)
 						.attr('cx',function(d){ return d.position.x;})
 						.attr('cy',function(d){ return d.position.y;});
@@ -160,7 +192,6 @@ angular.module('visualApp')
 					.attr('x',function(d){ return d.parent.position.x;})
 					.attr('y',function(d){ return d.parent.position.y+5;})
 					.text(function(d){return d.labeltext;})
-					//.on('click',function(d){return tree.addLeaf(d.id);})
 					.transition().duration(500)
 						.attr('x',function(d){ return d.position.x;})
 						.attr('y',function(d){ return d.position.y+5;});
@@ -184,21 +215,31 @@ angular.module('visualApp')
 				return leafCount;
 			};
 			
-			var reposition = function(node){
-				var leafCount = getLeafCount(node);
-				var left=node.position.x - tree.w*(leafCount-1)/2;
+			var reposition = function(){
+				if (!tree.root) {
+					return;
+				}
+				function repositionChild(node, parent, parentLeft) {
+					if (node) {
+						var w =tree.w*getLeafCount(node); 
+						parentLeft+=w; 
+						node.position = {x:parentLeft-(w+tree.w)/2, y:parent.position.y+tree.h};
 
-				function repositionChild(child) {
-					if (child) {
-						var w =tree.w*getLeafCount(child); 
-						left+=w; 
-						child.position = {x:left-(w+tree.w)/2, y:node.position.y+tree.h};
-						reposition(child);
+						var leafCount = getLeafCount(node);
+						var left=node.position.x - tree.w*(leafCount-1)/2;
+						left = repositionChild(node.children.leftChild, node, left);
+						left = repositionChild(node.children.rightChild, node, left);
 					}
+					return parentLeft
 				}
 
-				repositionChild(node.children.leftChild);
-				repositionChild(node.children.rightChild);
+				var root = tree.root;
+				root.position = {x:tree.cx, y:tree.cy};
+				var leafCount = getLeafCount(root);
+				var left=root.position.x - tree.w*(leafCount-1)/2;
+
+				left = repositionChild(root.children.leftChild, root, left);
+				left = repositionChild(root.children.rightChild, root, left);
 			}	
 			
 			var initialize = function(){										
@@ -220,15 +261,13 @@ angular.module('visualApp')
 					.attr('cx',function(d){ return d.position.x;})
 					.attr('cy',function(d){ return d.position.y;})
 					.attr('r',vRadius)
-					//.on('click',function(d){return tree.addLeaf(d.id);});
 					
 				var labels = d3.select("#treesvg").append('g').attr('id','g_labels').selectAll('text').data(tree.getVertices(), function(d){return d.id})
 				labels.enter().append('text')
 					.attr('x',function(d){ return d.position.x;})
 					.attr('y',function(d){ return d.position.y+5;})
 					.text(function(d){return d.labeltext;})
-					//.on('click',function(d){return tree.addLeaf(d.id);});	
-				
+				/*
 				tree.addLeaf(7);
 				tree.addLeaf(5);
 				tree.addLeaf(3);
@@ -238,6 +277,7 @@ angular.module('visualApp')
 				tree.addLeaf(4);
 				tree.addLeaf(8);
 				tree.addLeaf(11);
+				*/
 
 			}
 			initialize();
@@ -254,24 +294,14 @@ angular.module('visualApp')
 			}
     	}
 
-    	function findNode(node, val){
-    		if (node.value == val) {
-    			return node;
-    		} else if (val <= node.value && node.children.leftChild) {
-    			return findNode(node.children.leftChild, val);
-    		} else if (val > node.value && node.children.rightChild) {
-    			return findNode(node.children.rightChild, val);
-    		} else {
-    			return false;
-    		}
-    	}
-
     	$scope.findNode = function() {
     		if (tree && $scope.findNodeValue) {
     			var findNodeValue = parseInt($scope.findNodeValue);
-    			var node = findNode(tree.node, findNodeValue);
-    			$scope.findNodeValue = "";
+    			var node = tree.findNode(findNodeValue);
+    			console.log(node);
     		}
+    		$scope.findNodeValue = "";
+
     	}
 
 
@@ -284,7 +314,5 @@ angular.module('visualApp')
 
     	}
 		var tree= binaryTree();
-
-
 
     });

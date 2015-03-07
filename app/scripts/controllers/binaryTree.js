@@ -1,6 +1,7 @@
 var prompt = require('prompt');
 
 
+
 function Node(value) {
 
 	this.value = value;
@@ -124,6 +125,11 @@ var specific_tree = makeSpecificTree();
 specific_tree.printTree();
 var random_tree = makeRandomTree();
 random_tree.printTree();
+
+module.exports = {
+	Node: Node,
+	Tree: Tree,
+};
 
 
 
