@@ -10,8 +10,8 @@
 angular.module('visualApp')
     .controller('RebalanceCtrl', function ($scope) {
 
-
 		function binaryTree(){
+			var highlightDuration = 1000
 			var svgWidth = d3.select(".rebalance-svg-container").node().getBoundingClientRect().width;
 			var svgHeight = 460;
 			var vRadius=12;
@@ -33,7 +33,6 @@ angular.module('visualApp')
 				}
 				if (tree.root) getVertices(tree.root,{position:{x:tree.cx, y:tree.cy}});
 				var sortedVertices = vertices.sort(function(a,b){ return a.id - b.id;});
-				console.log(sortedVertices);
 				return sortedVertices;
 			}
 			
@@ -54,28 +53,52 @@ angular.module('visualApp')
 			}
 
 			tree.findNode = function(val) {
-				function findNode(node, val){
+				function findNode(node, val, clock){
 		    		if (node.value == val) {
-		    			return node;
-		    		} else if (val <= node.value && node.children.leftChild) {
-		    			return findNode(node.children.leftChild, val);
-		    		} else if (val > node.value && node.children.rightChild) {
-		    			return findNode(node.children.rightChild, val);
-		    		} else {
-		    			return false;
+		    			tree.highlightCircle(node.id, "#79D667", clock)
+		    			clock += highlightDuration
 		    		}
+		    		else if (val <= node.value && node.children.leftChild) {
+		    			tree.highlightCircle(node.id, "#BCE0FF", clock)
+		    			clock = findNode(node.children.leftChild, val, clock + highlightDuration);
+		    		} else if (val > node.value && node.children.rightChild) {
+		    			tree.highlightCircle(node.id, "#BCE0FF", clock)
+		    			clock = findNode(node.children.rightChild, val, clock + highlightDuration);
+		    		} else {
+		    			tree.highlightCircle(node.id, "#D76C79", clock)
+		    			clock += highlightDuration
+		    		}
+		    		return clock
 		    	}
-		    	return findNode(tree.root, val);
-
+		    	return findNode(tree.root, val, 0);
 			}
+
+			tree.highlightCircle = function(id, color, start) {
+	    		var circle = d3.select('#g_circles').select("#name"+id)
+	    		var end = start+highlightDuration
+	    		circle
+  					.transition().delay(start)
+  					.style("fill", color)
+  					.transition().duration(highlightDuration-500).delay(end-500)
+  					.style("fill","white");
+  				return end
+	    	};
 			
 			tree.addLeaf = function(val){
 				var newSize = tree.size++
 				var newNode = {id:newSize, value:val, labeltext:val.toString(), position:{},children:{}}
-
 				tree.addNode(newNode);
 				reposition();
-				redraw();
+				redraw()
+
+			}
+			tree.addLeafWithAnimation = function(val) {
+				var newSize = tree.size++
+				var newNode = {id:newSize, value:val, labeltext:val.toString(), position:{},children:{}}
+				tree.addNode(newNode);
+				reposition();
+				var clock = tree.findNode(val);
+				setTimeout(function(){redraw()}, clock-highlightDuration);
 			}
 
 			tree.addNode = function(newNode) {
@@ -116,7 +139,6 @@ angular.module('visualApp')
 				}
 
 				function removeNodeFromChild (node, val, parent, prop) {
-
 					if (node.value == val) {
 						if (parent) {
 			    			delete parent.children[prop];
@@ -139,20 +161,21 @@ angular.module('visualApp')
 		    		}			
 				}
 
+	    		var clock = tree.findNode(val);
 				removeNodeFromChild(tree.root, val);
 	    		reposition();
-				redraw();
+				setTimeout(function(){redraw()}, clock);
 	    	}
-			
+
 			var redraw = function(){
 				var edges = d3.select("#g_lines").selectAll('line').data(tree.getEdges(), function(d){return d.childId});
-				console.log(edges);
 				
 				edges.transition().duration(500)
 					.attr('x1',function(d){ return d.parentPosition.x;})
 					.attr('y1',function(d){ return d.parentPosition.y;})
 					.attr('x2',function(d){ return d.childPosition.x;})
 					.attr('y2',function(d){ return d.childPosition.y;})
+
 			
 				edges.enter().append('line')
 					.attr('x1',function(d){ return d.parentPosition.x;})
@@ -172,13 +195,15 @@ angular.module('visualApp')
 				.attr('cy',function(d){ return d.position.y;});
 				
 				circles.enter().append('circle')
+					.attr('id', function(d){return 'name' + d.id})
+
 					.attr('cx',function(d){ return d.parent.position.x;})
 					.attr('cy',function(d){ return d.parent.position.y;})
 					.attr('r',vRadius)
 					.transition().duration(500)
 						.attr('cx',function(d){ return d.position.x;})
 						.attr('cy',function(d){ return d.position.y;});
-				
+				circles.classed('selected');
 				circles.exit().remove();
 
 				var labels = d3.select("#g_labels").selectAll('text').data(tree.getVertices(), function(d){ return d.id});
@@ -196,7 +221,7 @@ angular.module('visualApp')
 						.attr('x',function(d){ return d.position.x;})
 						.attr('y',function(d){ return d.position.y+5;});
 			
-				labels.exit().remove();			
+				labels.exit().remove();	
 			}
 			
 			var getLeafCount = function(node) {
@@ -258,6 +283,7 @@ angular.module('visualApp')
 
 				var circles = d3.select("#treesvg").append('g').attr('id','g_circles').selectAll('circle').data(tree.getVertices(), function(d){return d.id});
 				circles.enter().append('circle')
+					.attr('id', function(d){return 'name' + d.id})
 					.attr('cx',function(d){ return d.position.x;})
 					.attr('cy',function(d){ return d.position.y;})
 					.attr('r',vRadius)
@@ -267,8 +293,8 @@ angular.module('visualApp')
 					.attr('x',function(d){ return d.position.x;})
 					.attr('y',function(d){ return d.position.y+5;})
 					.text(function(d){return d.labeltext;})
-				/*
 				tree.addLeaf(7);
+		
 				tree.addLeaf(5);
 				tree.addLeaf(3);
 				tree.addLeaf(6);
@@ -277,19 +303,16 @@ angular.module('visualApp')
 				tree.addLeaf(4);
 				tree.addLeaf(8);
 				tree.addLeaf(11);
-				*/
-
 			}
 			initialize();
 
 			return tree;
 		}
 
-
 		$scope.addNode = function() {
 			if (tree && $scope.addNodeValue) {
 				var addNodeValue = parseInt($scope.addNodeValue);
-				tree.addLeaf(addNodeValue);
+				tree.addLeafWithAnimation(addNodeValue);
 				$scope.addNodeValue = "";					
 			}
     	}
@@ -297,13 +320,11 @@ angular.module('visualApp')
     	$scope.findNode = function() {
     		if (tree && $scope.findNodeValue) {
     			var findNodeValue = parseInt($scope.findNodeValue);
-    			var node = tree.findNode(findNodeValue);
-    			console.log(node);
+    			var clock = tree.findNode(findNodeValue);
     		}
     		$scope.findNodeValue = "";
 
     	}
-
 
     	$scope.removeNode = function() {
     		if (tree && $scope.removeNodeValue) {
@@ -311,7 +332,6 @@ angular.module('visualApp')
     			tree.removeNode(removeNodeValue);
     		}
     		$scope.removeNodeValue = "";
-
     	}
 		var tree= binaryTree();
 

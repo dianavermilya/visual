@@ -426,6 +426,10 @@ circle{
   stroke:steelblue;  
   stroke-width:2px;
 }
+circle.selected {
+  fill: #BCE0FF;
+}
+
 line{
   stroke:grey;
   stroke-width:3px;
