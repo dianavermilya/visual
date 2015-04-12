@@ -35,6 +35,10 @@ angular
         templateUrl: 'views/rebalance.html',
         controller: 'RebalanceCtrl'
       })
+      .when('/redblack', {
+        templateUrl: 'views/redblack.html',
+        controller: 'RedblackCtrl'
+      })
       .otherwise({
         redirectTo: '/'
       });

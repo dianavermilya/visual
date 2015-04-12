@@ -76,12 +76,43 @@
                         April 2, 2015: Coloring for Binary Tree.
                     </h2>
                     <h3 class="post-subtitle">
-                        I built a binary tree visualization out of 
-                        <a href="http://bl.ocks.org/NPashaP/7683252">NPashaP's graceful tree code</a>
-                        Additions to Binary Tree: Find nodes, watch search propogate through tree when adding, removing, or Finding a node.
+                        Now, when adding or removing a node from the binary tree, one can watch as the path is traced out by a D3 animation.  D3 does not have a lot of support for long sequences of transitions in animation, particularly when it's unclear how many steps it will take.  In my case, I'm able to calculate timing as I find my node, and use this for visualizing afterwards.
                     </h3>
 
                     <!--<p class="post-meta">Posted by <a href="#">Start Bootstrap</a> on September 24, 2014</p>-->
+                </div>
+                <hr>
+
+                 <div class="post-preview">
+                    <h2 class="post-title">
+                        April 7, 2015: Red Black Trees: Every non-leaf node has two children.
+                    </h2>
+                    <h3 class="post-subtitle">
+                        In order to make the red-black tree visualization, I've set up a binary tree implementation in which leaves are represented as empty nodes.  Every non empty node has 2 children, where one or both of these children may be leaves.  It is important that the viewer can see the leaf nodes, because they are colored, and are often players in the rebalancing actions.
+                    </h3>
+                </div>
+                <hr>
+
+                <div class="post-preview">
+                    <h2 class="post-title">
+                        April 10, 2015: Red Black Trees: Insertion
+                    </h2>
+                    <h3 class="post-subtitle">
+                        Insertion is complete.  Debugging was very difficult, but it forced me to understand the actual algorithm, rather than just translate the C implementation on Wikipedia into JavaScript.  The out of the box animation, using the D3 from the binary search tree, looks decent, but I will definitely want to make it better, in order to show the actual algorithm better.  I'm toying with the idea of displaying some of the code, or pseudocode, on the page, so that viewers can follow along.
+                    </h3>
+                </div>
+                <hr>
+
+                <div class="post-preview">
+                    <h2 class="post-title">
+                        April 12, 2015: Red Black Trees: Deletion
+                    </h2>
+                    <h3 class="post-subtitle">
+                        Deletion works with a few caveats:</br>
+                         1. Errors when deleting node that doesn't exist </br>
+                         2. Errors when deleting the last node. </br>
+                         3. Needs better animation. </br>
+                    </h3>
                 </div>
                 <hr>
 

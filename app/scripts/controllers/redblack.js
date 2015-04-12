@@ -2,13 +2,13 @@
 
 /**
  * @ngdoc function
- * @name visualApp.controller:RebalanceCtrl
+ * @name visualApp.controller:RedblackCtrl
  * @description
- * # RebalanceCtrl
+ * # RedblackCtrl
  * Controller of the visualApp
  */
 angular.module('visualApp')
-    .controller('RebalanceCtrl', function ($scope, BinaryTreeService) {
+    .controller('RedblackCtrl', function ($scope, RedBlackTreeService) {
 
 		$scope.addNode = function() {
 			if (tree && $scope.addNodeValue) {
@@ -35,6 +35,6 @@ angular.module('visualApp')
     		$scope.removeNodeValue = "";
     	}
 
-		var tree= BinaryTreeService.getBinaryTree();
+		var tree = RedBlackTreeService.getRedBlackTree();
 
     });
