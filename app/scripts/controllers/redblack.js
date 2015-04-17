@@ -21,7 +21,7 @@ angular.module('visualApp')
     	$scope.findNode = function() {
     		if (tree && $scope.findNodeValue) {
     			var findNodeValue = parseInt($scope.findNodeValue);
-    			var clock = tree.findNode(findNodeValue);
+    			tree.findNodeWithAnimation(findNodeValue);
     		}
     		$scope.findNodeValue = "";
 

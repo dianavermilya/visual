@@ -26,17 +26,17 @@ angular.module('visualApp')
 			tree.findNodeWithAnimation = function(val) {
 				function findNodeWithAnimation(node, val, clock){
 		    		if (node.value == val) {
-		    			highlightCircle(node.id, "#79D667", clock)
+		    			highlightCircle(node.id, "#00C782", clock) //green
 		    			clock += highlightDuration
 		    		}
 		    		else if (val <= node.value && node.left) {
-		    			highlightCircle(node.id, "#BCE0FF", clock)
+		    			highlightCircle(node.id, "#00A9C7", clock) //blue
 		    			clock = findNodeWithAnimation(node.left, val, clock + highlightDuration);
 		    		} else if (val > node.value && node.right) {
-		    			highlightCircle(node.id, "#BCE0FF", clock)
+		    			highlightCircle(node.id, "#00A9C7", clock) //blue
 		    			clock = findNodeWithAnimation(node.right, val, clock + highlightDuration);
 		    		} else {
-		    			highlightCircle(node.id, "#D76C79", clock)
+		    			highlightCircle(node.id, "#F02400", clock) //tomato
 		    			clock += highlightDuration
 		    		}
 		    		return clock
@@ -46,7 +46,8 @@ angular.module('visualApp')
 			
 			tree.addNewNode = function(val){
 				var node = newNode(val)
-				addNode(node);
+				var clock = addNode(node);
+				rebalanceOnInsert(node)
 				reposition();
 				redraw()
 
@@ -54,9 +55,17 @@ angular.module('visualApp')
 			tree.addNewNodeWithAnimation = function(val) {
 				var node = newNode(val)
 				addNode(node);
-				reposition();
-				var clock = tree.findNodeWithAnimation(val);
-				setTimeout(function(){redraw()}, clock-highlightDuration);
+				var clock = tree.findNodeWithAnimation(node.value-highlightDuration);
+
+				setTimeout(function(){
+					reposition();
+					redraw()
+					rebalanceOnInsert(node)
+					setTimeout(function() {
+						reposition();
+						redraw()
+					}, 1000)
+				}, clock);
 			}
 
 			var newNode = function(val) {
@@ -108,7 +117,89 @@ angular.module('visualApp')
 					return (!node.right.isLeaf) ? node.right : node;
 				}
 
-				function sibling(node) { //TODO: make sure it's ok to return leaves
+				function removeNodeAndReorganize(node) {
+					if (node.left.isLeaf || node.right.isLeaf) { // 0 or 1 children
+						var child = (node.right.isLeaf) ? node.left : node.right;
+						if (node == tree.root) {
+							tree.root = undefined;
+						} else if (node == node.parent.left) {
+							node.parent.left = child;
+							if (child){
+								child.parent = node.parent;
+							}
+						} else {
+							node.parent.right = child;
+							if (child){
+								child.parent = node.parent;
+							}						
+						}
+
+						//rebalance
+						if (node.color == 0) {
+							if (child.color == 1) {
+								child.color = 0;
+							} else {
+								rebalanceOnDelete(child);
+							}
+						}
+
+					} else { // 2 children
+						var swapNode = maxOfSubTree(node.left);
+						node.value = swapNode.value;
+						node.labeltext = swapNode.labeltext;
+						removeNodeAndReorganize(swapNode);
+					}
+				}
+
+				var node = findNode(val);
+				var clock = tree.findNodeWithAnimation(val);
+				removeNodeAndReorganize(node)
+				reposition()
+				setTimeout(function(){redraw()}, clock);
+	    	}
+
+	    	var addNode = function(newNode) {
+				function chooseBranch(node){
+					if (newNode.value != undefined) {
+						if (newNode.value <= node.value) {
+							addleft(node, newNode);
+						} else {
+							addright(node, newNode);
+						}
+					}
+				}
+				function addleft(node, child) {
+					if (node.left.isLeaf) {
+						node.left = child;
+						child.parent = node;
+					} else {
+						chooseBranch(node.left);
+					}
+				}
+				function addright(node, child) {
+					if (node.right.isLeaf) {
+						node.right = child;
+						child.parent = node
+					} else {
+						chooseBranch(node.right);
+					}
+				}
+				if (!tree.root) {
+					newNode.position = {x:tree.cx, y:tree.cy};
+					tree.root = newNode;
+				} else {
+					chooseBranch(tree.root);
+				}
+			}
+
+			//	rebalancing functions 	
+			var rebalanceOnDelete = function(node) {
+				if (!tree.root) {
+					return;
+				}
+	    		delete_case1(node);
+
+	    		function sibling(node) {
 					if (node == node.parent.left) {
 						return node.parent.right; 
 					} else {
@@ -139,8 +230,6 @@ angular.module('visualApp')
 				function delete_case3(node){
 
 					var S = sibling(node);
-					console.log("node", node);
-					console.log("sibling", S);
 					if ((node.parent.color == 0) &&
 						(S.color == 0) &&
 						(S.left.color == 0) &&
@@ -198,120 +287,11 @@ angular.module('visualApp')
 					}
 				}
 
-				function rotate_right(Q) {
-					var r = Q.parent
-					var P = Q.left
-					Q.left = P.right
-					Q.left.parent = Q
-					P.right = Q
-					P.right.parent = P
-					P.parent = r
-					if (!r) {
-						tree.root = P
-					} else {
-						if (r.left == Q) {
-							r.left = P
-						} else {
-							r.right = P
-						}						
-					}
-				}
-
-				function rotate_left(P) {
-					var r = P.parent
-					var Q = P.right
-					P.right = Q.left
-					P.right.parent = P
-					Q.left = P
-					Q.left.parent = Q
-					Q.parent = r
-					if (!r) {
-						tree.root = Q
-					} else {
-						if (r.right == P) {
-							r.right = Q
-						} else {
-							r.left = Q
-						}
-					}
-				}
-
-				function removeNodeAndReorganize(node) {
-					if (node.left.isLeaf || node.right.isLeaf) { // 0 or 1 children
-						var child = (node.right.isLeaf) ? node.left : node.right;
-						if (node == tree.root) {
-							tree.root = child;
-						} else if (node == node.parent.left) {
-							node.parent.left = child;
-							child.parent = node.parent;
-						} else {
-							node.parent.right = child;
-							child.parent = node.parent;
-						}
-
-						//rebalance
-						if (node.color == 0) {
-							if (child.color == 1) {
-								child.color = 0;
-							} else {
-								delete_case1(child);
-							}
-						}
-
-					} else { // 2 children
-						var swapNode = maxOfSubTree(node.left);
-						node.value = swapNode.value;
-						node.labeltext = swapNode.labeltext;
-						removeNodeAndReorganize(swapNode);
-					}
-				}
-
-				var node = findNode(val);
-				var clock = tree.findNodeWithAnimation(val);
-				removeNodeAndReorganize(node)
-				reposition()
-				setTimeout(function(){redraw()}, clock);
 	    	}
 
-	    	var addNode = function(newNode) {
-				function chooseBranch(node){
-					if (newNode.value != undefined) {
-						if (newNode.value <= node.value) {
-							addleft(node, newNode);
-						} else {
-							addright(node, newNode);
-						}
-					}
-				}
-				function addleft(node, child) {
-					if (node.left.isLeaf) {
-						node.left = child;
-						child.parent = node;
-						rebalance(child)
+	    	var rebalanceOnInsert = function(node) {
+	    		insert_case1(node)
 
-					} else {
-						chooseBranch(node.left);
-					}
-				}
-				function addright(node, child) {
-					if (node.right.isLeaf) {
-						node.right = child;
-						child.parent = node
-						rebalance(child)
-					} else {
-						chooseBranch(node.right);
-					}
-				}
-				if (!tree.root) {
-					newNode.position = {x:tree.cx, y:tree.cy};
-					tree.root = newNode;
-					rebalance(tree.root)
-				} else {
-					chooseBranch(tree.root);
-				}
-			}
-
-			var rebalance = function(node) {
 				function insert_case1(node) {
 					if (node == tree.root) {
 						node.color = 0;
@@ -363,45 +343,46 @@ angular.module('visualApp')
 						rotate_left(g)
 					}
 				}
-				function rotate_right(Q) {
-					var r = Q.parent
-					var P = Q.left
-					Q.left = P.right
-					Q.left.parent = Q
-					P.right = Q
-					P.right.parent = P
-					P.parent = r
-					if (!r) {
-						tree.root = P
-					} else {
-						if (r.left == Q) {
-							r.left = P
-						} else {
-							r.right = P
-						}						
-					}
-				}
-
-				function rotate_left(P) {
-					var r = P.parent
-					var Q = P.right
-					P.right = Q.left
-					P.right.parent = P
-					Q.left = P
-					Q.left.parent = Q
-					Q.parent = r
-					if (!r) {
-						tree.root = Q
-					} else {
-						if (r.right == P) {
-							r.right = Q
-						} else {
-							r.left = Q
-						}
-					}
-				}
-				insert_case1(node)
 			}
+
+			var rotate_right = function(Q) {
+				var r = Q.parent
+				var P = Q.left
+				Q.left = P.right
+				Q.left.parent = Q
+				P.right = Q
+				P.right.parent = P
+				P.parent = r
+				if (!r) {
+					tree.root = P
+				} else {
+					if (r.left == Q) {
+						r.left = P
+					} else {
+						r.right = P
+					}						
+				}
+			}
+
+	    	var rotate_left = function (P) {
+				var r = P.parent
+				var Q = P.right
+				P.right = Q.left
+				P.right.parent = P
+				Q.left = P
+				Q.left.parent = Q
+				Q.parent = r
+				if (!r) {
+					tree.root = Q
+				} else {
+					if (r.right == P) {
+						r.right = Q
+					} else {
+						r.left = Q
+					}
+				}
+			}
+
 			
 			// If the grandparent does not exist, this function returns undefined 
 			var getGrandParent = function(node) {
@@ -422,7 +403,11 @@ angular.module('visualApp')
 				}
 			};
 
+
 			var getLeafCount = function(node) {
+				if (!node) {
+					return 0;
+				}
 				var leafCount = 0
 
 				if (node.isLeaf) {
@@ -448,7 +433,7 @@ angular.module('visualApp')
 				if (tree.root) getVerticesFromChild(tree.root,{position:{x:tree.cx, y:tree.cy}});
 				var sortedVertices = vertices.sort(function(a,b){ return a.id - b.id;});
 				return sortedVertices;
-			}
+			};
 			
 			var getEdges = function(){
 				var edges =[];
@@ -464,13 +449,13 @@ angular.module('visualApp')
 				}
 				if (tree.root) getEdgesOfNode(tree.root);
 				return edges.sort(function(a,b){ return a.childId - b.childId;});	
-			}
+			};
 			
-
 			
 			/*Positioning and Drawing Functions*/
 			
 			var reposition = function(){
+				console.log(tree.root);
 				if (!tree.root) {
 					return;
 				}
@@ -485,7 +470,6 @@ angular.module('visualApp')
 						left = repositionChild(node.left, node, left);
 						left = repositionChild(node.right, node, left);						
 					}
-
 					return parentLeft
 				}
 
@@ -539,11 +523,10 @@ angular.module('visualApp')
 						.attr('cy',function(d){ return d.position.y;});
 
 
-				circles.classed('selected');
 				circles.exit().remove();
 
 				circles = d3.select("#g_circles").selectAll('circle').data(getVertices(), function(d){return d.id});
-				circles.style("fill", function(d) {return (d.color == 0) ? "#A9A9A9" : "#F08080"})
+				circles.style("fill", function(d) {return (d.color == 0) ? "#A9A9A9" : "#FF745c"})
 
 
 				var labels = d3.select("#g_labels").selectAll('text').data(getVertices(), function(d){ return d.id});
@@ -568,23 +551,23 @@ angular.module('visualApp')
 			}
 
 			var highlightCircle = function(id, color, start) {
-				/*
-	    		var circle = d3.select('#g_circles').select("#name"+id)
+				var circle = d3.select('#g_circles').select("#name"+id)
 	    		var end = start+highlightDuration
 	    		circle
   					.transition().delay(start)
-  					.style("fill", color)
+  					.style("stroke", color)
+  					.style("stroke-width", "4px")
   					.transition().duration(highlightDuration-500).delay(end-500)
-  					.style("fill","white");
+  					.style("stroke","grey")
+  					.style("stroke-width", "2px");
+
   				return end
-  				*/
-  				return start
 	    	};
 
 			var initialize = function(){
 				tree.root.left = newLeaf()	
 				tree.root.right = newLeaf()
-				rebalance(tree.root)
+				rebalanceOnInsert(tree.root)
 				reposition()
 
 				d3.select(".svg-container").append("svg")
@@ -616,13 +599,13 @@ angular.module('visualApp')
 
 				tree.addNewNode(7);
 		
-				tree.addNewNode(5);
-				tree.addNewNode(3);
-				tree.addNewNode(6);
-				tree.addNewNode(12);
-				tree.addNewNode(10);
-				tree.addNewNode(4);
-				tree.addNewNode(11);
+				//tree.addNewNode(5);
+				//tree.addNewNode(3);
+				//tree.addNewNode(6);
+				//tree.addNewNode(12);
+				//tree.addNewNode(10);
+				//tree.addNewNode(4);
+				//tree.addNewNode(11);
 				reposition()
 
 

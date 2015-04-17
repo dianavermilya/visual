@@ -91,13 +91,19 @@ angular.module('visualApp')
 
 				function removeNodeAndReorganize(node) {
 					if (!(node.left && node.right)) { // 0 or 1 children
-						var child = (node.left) ? node.left : node.right
+						var child = (node.left) ? node.left : node.right;
 						if (node == tree.root) {
 							tree.root = child
 						} else if (node == node.parent.left) {
 							node.parent.left = child
+							if (child) {
+								child.parent = node.parent
+							}
 						} else {
 							node.parent.right = child
+							if (child) {
+								child.parent = node.parent
+							}
 						}
 					} else { // 2 children
 						var swapNode = maxOfSubTree(node.left)
@@ -262,7 +268,6 @@ angular.module('visualApp')
 					.transition().duration(500)
 						.attr('cx',function(d){ return d.position.x;})
 						.attr('cy',function(d){ return d.position.y;});
-				circles.classed('selected');
 				circles.exit().remove();
 
 				var labels = d3.select("#g_labels").selectAll('text').data(getVertices(), function(d){ return d.id});
@@ -321,14 +326,14 @@ angular.module('visualApp')
 					.attr('y',function(d){ return d.position.y+5;})
 					.text(function(d){return d.value.toString();})
 				tree.addNewNode(7);
-				tree.addNewNode(5);
-				tree.addNewNode(3);
-				tree.addNewNode(6);
-				tree.addNewNode(12);
-				tree.addNewNode(10);
-				tree.addNewNode(4);
-				tree.addNewNode(8);
-				tree.addNewNode(11);
+				//tree.addNewNode(5);
+				//tree.addNewNode(3);
+				//tree.addNewNode(6);
+				//tree.addNewNode(12);
+			//	tree.addNewNode(10);
+			///	tree.addNewNode(4);
+			//	tree.addNewNode(8);
+			//	tree.addNewNode(11);
 			}
 			initialize();
 
