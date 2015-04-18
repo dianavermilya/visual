@@ -26,50 +26,51 @@ angular.module('visualApp')
 			tree.findNodeWithAnimation = function(val) {
 				function findNodeWithAnimation(node, val, clock){
 		    		if (node.value == val) {
-		    			highlightCircle(node.id, "#00C782", clock) //green
-		    			clock += highlightDuration
+		    			highlightCircle(node.id, "#00C782", clock); //green
+		    			clock += highlightDuration;
 		    		}
-		    		else if (val <= node.value && node.left) {
-		    			highlightCircle(node.id, "#00A9C7", clock) //blue
+		    		else if (val <= node.value && !node.left.isLeaf) {
+		    			highlightCircle(node.id, "#00A9C7", clock); //blue
 		    			clock = findNodeWithAnimation(node.left, val, clock + highlightDuration);
-		    		} else if (val > node.value && node.right) {
-		    			highlightCircle(node.id, "#00A9C7", clock) //blue
+		    		} else if (val > node.value && !node.right.isLeaf) {
+		    			highlightCircle(node.id, "#00A9C7", clock); //blue
 		    			clock = findNodeWithAnimation(node.right, val, clock + highlightDuration);
 		    		} else {
-		    			highlightCircle(node.id, "#F02400", clock) //tomato
-		    			clock += highlightDuration
+		    			highlightCircle(node.id, "#F02400", clock); //tomato
+		    			clock += highlightDuration;
 		    		}
-		    		return clock
+		    		return clock;
 		    	}
 		    	return findNodeWithAnimation(tree.root, val, 0);
 			}
 			
 			tree.addNewNode = function(val){
-				var node = newNode(val)
+				var node = newNode(val);
 				var clock = addNode(node);
-				rebalanceOnInsert(node)
+				rebalanceOnInsert(node);
 				reposition();
-				redraw()
+				redraw();
 
 			}
+
 			tree.addNewNodeWithAnimation = function(val) {
-				var node = newNode(val)
+				var node = newNode(val);
 				addNode(node);
-				var clock = tree.findNodeWithAnimation(node.value-highlightDuration);
+				var clock = tree.findNodeWithAnimation(node.value)-highlightDuration;
 
 				setTimeout(function(){
 					reposition();
-					redraw()
-					rebalanceOnInsert(node)
+					redraw();
+					rebalanceOnInsert(node);
 					setTimeout(function() {
 						reposition();
-						redraw()
-					}, 1000)
+						redraw();
+					}, highlightDuration);
 				}, clock);
 			}
 
 			var newNode = function(val) {
-				var newSize = tree.size++
+				var newSize = tree.size++;
 				var node = {
 					id:newSize, 
 					value:val, 
@@ -80,9 +81,9 @@ angular.module('visualApp')
 					parent: undefined, 
 					color:1
 				};
-				node.left.parent = node
-				node.right.parent = node
-				return node
+				node.left.parent = node;
+				node.right.parent = node;
+				return node;
 			}
 
 			var newLeaf = function() {
@@ -142,20 +143,37 @@ angular.module('visualApp')
 								rebalanceOnDelete(child);
 							}
 						}
+						return 0;
 
 					} else { // 2 children
 						var swapNode = maxOfSubTree(node.left);
+						var nodeVal = node.value;
+						var nodeText = node.labeltext;
+						var nodeId = node.id;
 						node.value = swapNode.value;
 						node.labeltext = swapNode.labeltext;
+						node.id = swapNode.id
+						swapNode.value = nodeVal;
+						swapNode.labeltext = nodeText;
+						swapNode.id = nodeId;
+						redraw();
 						removeNodeAndReorganize(swapNode);
+						return highlightDuration;
 					}
 				}
 
 				var node = findNode(val);
 				var clock = tree.findNodeWithAnimation(val);
-				removeNodeAndReorganize(node)
-				reposition()
-				setTimeout(function(){redraw()}, clock);
+
+				setTimeout(function(){
+					if (node) {
+						var clock2 = removeNodeAndReorganize(node);
+						reposition();
+						setTimeout(function() {
+							redraw();					
+						}, clock2);
+					}
+				}, clock);
 	    	}
 
 	    	var addNode = function(newNode) {
@@ -179,7 +197,7 @@ angular.module('visualApp')
 				function addright(node, child) {
 					if (node.right.isLeaf) {
 						node.right = child;
-						child.parent = node
+						child.parent = node;
 					} else {
 						chooseBranch(node.right);
 					}
@@ -286,7 +304,6 @@ angular.module('visualApp')
 						rotate_right(node.parent);
 					}
 				}
-
 	    	}
 
 	    	var rebalanceOnInsert = function(node) {
@@ -382,8 +399,7 @@ angular.module('visualApp')
 					}
 				}
 			}
-
-			
+	
 			// If the grandparent does not exist, this function returns undefined 
 			var getGrandParent = function(node) {
 				if (node.parent && node.parent.parent) {
@@ -402,7 +418,6 @@ angular.module('visualApp')
 					} 		
 				}
 			};
-
 
 			var getLeafCount = function(node) {
 				if (!node) {
@@ -455,7 +470,6 @@ angular.module('visualApp')
 			/*Positioning and Drawing Functions*/
 			
 			var reposition = function(){
-				console.log(tree.root);
 				if (!tree.root) {
 					return;
 				}
@@ -482,6 +496,7 @@ angular.module('visualApp')
 			}	
 
 			var redraw = function(){
+				console.log("redraw", new Date().getMilliseconds());
 				var edges = d3.select("#g_lines").selectAll('line').data(getEdges(), function(d){return d.childId});
 				
 				edges.transition().duration(500)
@@ -490,7 +505,6 @@ angular.module('visualApp')
 					.attr('x2',function(d){ return d.childPosition.x;})
 					.attr('y2',function(d){ return d.childPosition.y;})
 
-			
 				edges.enter().append('line')
 					.attr('x1',function(d){ return d.parentPosition.x;})
 					.attr('y1',function(d){ return d.parentPosition.y;})
@@ -508,13 +522,8 @@ angular.module('visualApp')
 				.attr('cx',function(d){ return d.position.x;})
 				.attr('cy',function(d){ return d.position.y;});
 
-				
 				circles.enter().append('circle')
-													
-
 					.attr('id', function(d){return 'name' + d.id})
-
-
 					.attr('cx',function(d){ return d.parent.position.x;})
 					.attr('cy',function(d){ return d.parent.position.y;})
 					.attr('r',vRadius)
@@ -522,12 +531,10 @@ angular.module('visualApp')
 						.attr('cx',function(d){ return d.position.x;})
 						.attr('cy',function(d){ return d.position.y;});
 
-
 				circles.exit().remove();
 
 				circles = d3.select("#g_circles").selectAll('circle').data(getVertices(), function(d){return d.id});
 				circles.style("fill", function(d) {return (d.color == 0) ? "#A9A9A9" : "#FF745c"})
-
 
 				var labels = d3.select("#g_labels").selectAll('text').data(getVertices(), function(d){ return d.id});
 				
@@ -598,14 +605,13 @@ angular.module('visualApp')
 
 
 				tree.addNewNode(7);
-		
-				//tree.addNewNode(5);
-				//tree.addNewNode(3);
-				//tree.addNewNode(6);
-				//tree.addNewNode(12);
-				//tree.addNewNode(10);
-				//tree.addNewNode(4);
-				//tree.addNewNode(11);
+				tree.addNewNode(5);
+				tree.addNewNode(3);
+				tree.addNewNode(6);
+				tree.addNewNode(12);
+				tree.addNewNode(10);
+				tree.addNewNode(4);
+				tree.addNewNode(11);
 				reposition()
 
 

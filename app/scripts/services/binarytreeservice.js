@@ -111,12 +111,15 @@ angular.module('visualApp')
 						removeNodeAndReorganize(swapNode);
 					}
 				}
-
-				var node = findNode(val);
 				var clock = tree.findNodeWithAnimation(val);
-				removeNodeAndReorganize(node)
-				reposition()
-				setTimeout(function(){redraw()}, clock);
+				var node = findNode(val);
+				setTimeout(function(){
+					if (node) {
+						removeNodeAndReorganize(node)
+						reposition()
+						redraw()
+					}
+				}, clock);
 	    	}
 
 	    	var addNode = function(newNode) {
