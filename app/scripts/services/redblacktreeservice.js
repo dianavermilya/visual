@@ -496,7 +496,6 @@ angular.module('visualApp')
 			}	
 
 			var redraw = function(){
-				console.log("redraw", new Date().getMilliseconds());
 				var edges = d3.select("#g_lines").selectAll('line').data(getEdges(), function(d){return d.childId});
 				
 				edges.transition().duration(500)

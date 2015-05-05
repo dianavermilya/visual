@@ -139,6 +139,50 @@
                 </div>
                 <hr>
 
+                <div class="post-preview">
+                    <h2 class="post-title">
+                        April 25, 2015: Neural Nets: I've got a Plan.
+                    </h2>
+                    <h3 class="post-subtitle">
+                        After some discussion with Riccardo Pucella (my advisor), and Alec Radford (friend and founder at Indico), I decided my third visualization would be a neural network.  As the network trains, the width of edges between nodes will also changes.  Now I need to get neural nets working in the browser...
+                    </h3>
+                </div>
+                <hr>
+
+                <div class="post-preview">
+                    <h2 class="post-title">
+                        April 27, 2015: Neural Nets drawn, but not hooked up.
+                    </h2>
+                    <h3 class="post-subtitle">
+                        The visualization is in, but not connected to any algorithm.  The hardest part was creating arrow heads, but after struggling with a few demo's, I now have a much better idea of how d3 and SVGs work.  The trick is create a triangle in the html with no position, and then reference it with the "marker-end" attribute.
+                    </h3>
+                </div>
+                <hr>
+
+                <div class="post-preview">
+                    <h2 class="post-title">
+                        April 30, 2015: Neural Nets working in the browser.
+                    </h2>
+                    <h3 class="post-subtitle">
+                        Check out these two cool libraries: </br>
+                        <a src="https://github.com/harthur/brain">Heather Arthur's Brain library:</a>  Works as long as your app includes a server. (mine doesn't)<br/>
+                        <a src="http://cs.stanford.edu/people/karpathy/convnetjs/">ConvNetJs:</a> No server needed<br/>
+                        I used ConvNetJs and was pretty happy with the results.  It was very tricky to get a neural net that converged appropriately, but the author has many good demo's, so I was able to repurpose one.
+                    </h3>
+                </div>
+                <hr>
+
+                 <div class="post-preview">
+                    <h2 class="post-title">
+                        May 5, 2015: Basic Visualization works.
+                    </h2>
+                    <h3 class="post-subtitle">
+                        The activation that a node receives is a linear combination of the inputs to that node.  In order to represent this, I set the width of each arrow pointing at a given node to the product of the parent node's output and the weight that the child gives to that parent's output.  This involved deconstructing a little bit of <a src="http://cs.stanford.edu/people/karpathy/convnetjs/">ConvNetJs's</a> source code, but I was fortunate that the library was well organized.<br/>
+                        I update the visualization every 10th of a second, which I've set to coorespond to one tenth of the iterations over the dataset.
+                    </h3>
+                </div>
+                <hr>
+
                 <!--
 
                 <ul class="pager">

@@ -237,7 +237,7 @@ angular.module('visualApp')
 
 			var redraw = function(){
 				var edges = d3.select("#g_lines").selectAll('line').data(getEdges(), function(d){return d.childId});
-				
+				console.log(edges);
 				edges.transition().duration(500)
 					.attr('x1',function(d){ return d.parentPosition.x;})
 					.attr('y1',function(d){ return d.parentPosition.y;})

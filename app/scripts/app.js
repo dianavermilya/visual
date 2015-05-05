@@ -39,6 +39,10 @@ angular
         templateUrl: 'views/redblack.html',
         controller: 'RedblackCtrl'
       })
+      .when('/neural', {
+        templateUrl: 'views/neural.html',
+        controller: 'NeuralCtrl'
+      })
       .otherwise({
         redirectTo: '/'
       });
