@@ -434,6 +434,12 @@ line{
   stroke:grey;
   //stroke-width:3px;
 }
+
+#treesvg {
+  line {
+    stroke-width:3px;
+  }
+}
 .incRect{
   stroke:grey;
   shape-rendering:crispEdges;
@@ -535,4 +541,61 @@ text {
 text.id {
   text-anchor: middle;
   font-weight: bold;
+}
+
+#test .arc2 {
+    stroke-weight:0.1;
+    fill: #3660b0;
+}
+
+#netsvg {
+  z-index: 1;
+}
+
+#outer {
+    background:#FFFFFF;
+    border-radius: 5px;
+    color: #000;
+    margin-top: 90px;
+    margin-right: 80px;
+
+    display: block;
+    float: left;  
+    z-index: 3;
+    position: absolute; /*newly added*/
+    right: 5px; /*newly added*/
+    top: 5px;/*newly added*/
+}
+
+#div3 {
+    width: 200px;
+    height: 200px;
+    box-sizing: border-box;
+    float: left;
+}
+
+
+#div3 .arc {
+    stroke-weight: 0.1;
+    fill: #1d871b;
+}
+
+.background {
+  fill: white;
+}
+
+.selectedRadial {
+    border-radius: 3px;
+    background: #f4f4f4;
+    color: #000;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    -moz-box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    border: 1px solid rgba(200,200,200,0.85);
+}
+
+.radial {
+    border-radius: 3px;
+    background: #FFFFFF;
+    color: #000;
+
 }

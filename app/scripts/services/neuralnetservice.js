@@ -26,6 +26,7 @@ angular.module('visualApp')
 			var dot_data = [];
 			var dot_labels = [];
 			var net;
+			var rp3;
 
 			var makeNodes = function() {
 				var nodeId = 0;
@@ -139,7 +140,7 @@ angular.module('visualApp')
 
 			function redraw_graph() {
 
-				var x = d3.select("#treesvg");
+				var x = d3.select("#netsvg");
 
 				function transpose(array) {
 					return array[0].map(function(col, i) { 
@@ -234,7 +235,6 @@ angular.module('visualApp')
   				var x = new convnetjs.Vol(1,1,2);
 
   				function train(i){
-  					console.log("running");
   					for (var ix=0; ix<200; ix++) {
   						x.w = dot_data[ix];
   						className = dot_labels[ix];
@@ -246,7 +246,12 @@ angular.module('visualApp')
   				}
 
 				(function myLoop (i) {          
-				   	setTimeout(function () { 
+				   	setTimeout(function () {
+				   		if (i%30==0) {
+				   			var val = Math.floor((1030-i)/10)
+				   			console.log("33", val);
+				   			rp3.value(val).render();
+				   		}
 				   		train(i);
 				    	if (--i) myLoop(i);      //  decrement i and call myLoop again if i > 0
 				   	}, 10)
@@ -281,8 +286,8 @@ angular.module('visualApp')
 				d3.select(".svg-container").append("svg")
 					.attr("width", svgWidth)
 					.attr("height", svgHeight)
-					.attr('id','treesvg');
-				d3.select("#treesvg").append('marker')
+					.attr('id','netsvg');
+				d3.select("#netsvg").append('marker')
 					.attr('id', 'triangle')
 					.attr('viewBox', "0 0 10 10")
 					.attr('refX', "0")
@@ -291,11 +296,20 @@ angular.module('visualApp')
 					.attr('markerWidth', "4")
 					.attr('markerHeight', "3")
 					.attr("orient", "auto")
+					.attr('fill', 'gray')
 					.append("svg:path")
 						.attr("d", "M 0 0 L 10 5 L 0 10 z")
 						.attr("fill", "context-stroke");
 
-				var arrow_lines = d3.select("#treesvg").append('g').attr('id','arrow_lines').selectAll('line').data(getEdges(), function(d){return d.id});
+			    rp3 = radialProgress(document.getElementById('div3'))
+	                .label("RADIAL 3")
+	                .diameter(150)
+	                .minValue(0)
+	                .maxValue(100)
+	                .value(1)
+	                .render();
+				    
+				var arrow_lines = d3.select("#netsvg").append('g').attr('id','arrow_lines').selectAll('line').data(getEdges(), function(d){return d.id});
 				arrow_lines.enter().append('line')
 					.attr('x1',function(d){ return d.parentPosition.x;})
 					.attr('y1',function(d){ return d.parentPosition.y;})
@@ -303,16 +317,16 @@ angular.module('visualApp')
 					.attr('y2',function(d){ return d.childPosition.y;})
 					.attr('class', "cat")
 					.attr("marker-end", "url(#triangle)");
-				var x = d3.select("#treesvg");
+				var x = d3.select("#netsvg");
 
-				var circles = d3.select("#treesvg").append('g').attr('id','circles').selectAll('circle').data(getNodes(), function(d){return d.id});
+				var circles = d3.select("#netsvg").append('g').attr('id','circles').selectAll('circle').data(getNodes(), function(d){return d.id});
 				circles.enter().append('circle')
 					.attr('id', function(d){return 'name' + d.id})
 					.attr('cx',function(d){ return d.cx;})
 					.attr('cy',function(d){ return d.cy;})
 					.attr('r',cRadius)
 					
-				var labels = d3.select("#treesvg").append('g').attr('id','g_labels').selectAll('text').data(getNodes(), function(d){return d.id})
+				var labels = d3.select("#netsvg").append('g').attr('id','g_labels').selectAll('text').data(getNodes(), function(d){return d.id})
 				labels.enter().append('text')
 					.attr('x',function(d){ return 0;})
 					.attr('y',function(d){ return 0;})
